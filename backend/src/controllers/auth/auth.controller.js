@@ -35,6 +35,7 @@ export const registeration = async (req, res)=> {
             data: {
                 _id: newUser._id,
                 name: newUser.name,
+                username: newUser.username,
                 email: newUser.email,
             },
             accessToken,
@@ -72,6 +73,7 @@ export const login = async(req, res)=> {
                 success: true,
                 data: {
                     name: isExistingUser.name,
+                    username: isExistingUser.username,
                     email: isExistingUser.email,
                 },
                 accessToken,

@@ -6,6 +6,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Name is required"],
     },
+    username: {
+        type: String,
+        unique: true,
+        trim: true,
+    },
     email: {
         type: String,
         unique: true,
@@ -25,6 +30,11 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
+    if (!this.username && this.email) {
+        let baseUsername = this.email.split('@')[0];
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        this.username = `${baseUsername}${randomSuffix}`;
+    }
     if (!this.isModified('password')) {
         return next;
     }
