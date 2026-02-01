@@ -69,6 +69,7 @@ export const addComment = async (req, res)=> {
         }
 
         post.comments.push(newComment);
+        await post.save();
         return res.status(200).json({
             message: "comment added",
             success: true,
