@@ -33,7 +33,7 @@ const postSchema = new mongoose.Schema({
         },
         createdAt: {
             type: Date,
-            default: Date.now(),
+            default: Date.now,
         },
         /** If any comments having replies */
         replies: [{
