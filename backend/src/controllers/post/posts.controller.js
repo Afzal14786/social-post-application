@@ -93,17 +93,36 @@ export const addComment = async (req, res)=> {
 
 export const getAllPosts = async (req, res)=> {
     try {
-        const posts = await postModel.find().sort({createdAt: -1}).populate("user", "name username email").populate({
-            path: "comments.user",
-            select: "name username",
-        });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        const posts = await postModel.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate("user", "name username email")
+            .populate({
+                path: "comments.user",
+                select: "name username",
+            });
+
+        const totalPosts = await postModel.countDocuments();
+        const totalPages = Math.ceil(totalPosts / limit);
 
         res.status(200).json({
-            message: `fetched total ${posts.length} posts`,
+            message: `fetched posts for page ${page}`,
             success: true,
-            count: posts.length,
             data: posts,
+            pagination: {
+                totalPosts: totalPosts,
+                totalPages: totalPages,
+                currentPage: page,
+                pageSize: limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            }
         });
+        
     } catch(err) {
         console.error(`Error while getting all the posts : ${err}`);
         return res.status(500).json({

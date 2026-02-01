@@ -1,10 +1,7 @@
 import express from "express";
-import dotenv from "dotenv";
-import connectDB from "./src/config/config.db.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import route from "./src/routes/index.routes.js";
-dotenv.config({quiet: true});
 
 const app = express();
 
@@ -29,7 +26,7 @@ app.use(express.urlencoded({
     parameterLimit: 100,
 }));
 
-app.use(cookieParser(process.env.JWT_SECRET));
+app.use(cookieParser((process.env.JWT_SECRET || "fallback_secret_for_dev")));
 
 /**
  * configure the route
@@ -41,5 +38,5 @@ app.get("/", (req, res, next)=> {
     res.send(`Server is running fine`);
 });
 
-connectDB();
+
 export default app;
