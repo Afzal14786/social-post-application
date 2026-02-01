@@ -3,11 +3,11 @@ import User from "../models/user/model.user.js";
 
 const protect = async (req, res, next)=> {
     let token;
-    if (req.headers.authorization && req.headers.authorization.startWith('Bearer')) {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(" ")[1];
             const decode = jwt.verify(token, process.env.JWT_SECRET);
-            let user = await User.findById(decode._id).select("-password");
+            let user = await User.findById(decode.id).select("-password");
 
             if (!user) {
                 return res.status(401).json({
@@ -15,7 +15,7 @@ const protect = async (req, res, next)=> {
                     success: false,
                 });
             }
-
+            req.user = user;
             next();
         } catch(err) {
             console.log(`Token verification error: ${err.message}`);
@@ -24,13 +24,13 @@ const protect = async (req, res, next)=> {
                 success: false,
             });
         }
-    }
-
-    if (!token) {
-        return res.status(401).json({
-            message: "Not Authorized, No Token",
-            success: false,
-        });
+    } else {
+        if (!token) {
+            return res.status(401).json({
+                message: "Not Authorized, No Token",
+                success: false,
+            });
+        }
     }
 }
 
