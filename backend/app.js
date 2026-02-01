@@ -26,7 +26,7 @@ app.use(express.urlencoded({
     parameterLimit: 100,
 }));
 
-app.use(cookieParser(process.env.JWT_SECRET));
+app.use(cookieParser((process.env.JWT_SECRET || "fallback_secret_for_dev")));
 
 /**
  * configure the route
