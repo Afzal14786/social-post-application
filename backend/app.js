@@ -34,7 +34,7 @@ app.use(cookieParser(process.env.JWT_SECRET));
 /**
  * configure the route
  */
-app.use('/api/v1/user', route)
+app.use('/api/v1', route)
 
 
 app.get("/", (req, res, next)=> {
