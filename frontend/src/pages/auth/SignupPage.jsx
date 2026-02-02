@@ -24,7 +24,7 @@ const SignupPage = () => {
       const { data } = await registerUser(formData);
       if (data.success) {
         toast.success("Account created successfully!");
-        login(data.user);
+        login({ ...data.data, token: data.accessToken });
         navigate("/");
       }
     } catch (error) {

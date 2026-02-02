@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import Loading from "./components/common/Loading";
+import LayoutWrapper from "./components/layout/LayoutWrapper";
 
 
 const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
@@ -14,8 +15,8 @@ import PublicRoute from "./components/common/PublicRoute";
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <Toaster position="top-center" />
         
         {/* Suspense shows the Loading spinner while the page downloads */}
@@ -38,8 +39,8 @@ function App() {
             
           </Routes>
         </Suspense>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
