@@ -9,11 +9,24 @@ const API = axios.create({
   },
 });
 
-// 2. Add Interceptor (The Security Guard)
+// Add a request interceptor to attach the token
+API.interceptors.request.use(
+  (config) => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      const parsedUser = JSON.parse(user);
+      if (parsedUser?.token) {
+        config.headers.Authorization = `Bearer ${parsedUser.token}`;
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    // If Backend says "Unauthorized" (401), force logout
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("user");
       window.location.href = "/login";
@@ -22,25 +35,22 @@ API.interceptors.response.use(
   }
 );
 
-// ---------------------------------------------------------
-// 3. Define API Calls (The "Menu" of your Backend)
-// ---------------------------------------------------------
-
-// --- AUTHENTICATION ---
+// --- AUTH ---
 export const loginUser = (data) => API.post("/users/auth/login", data);
 export const registerUser = (data) => API.post("/users/auth/register", data);
 export const logoutUser = () => API.post("/users/auth/logout");
 
 // --- POSTS ---
-export const fetchPosts = (page) => API.get(`/posts?page=${page}&limit=10`);
+export const fetchPosts = (page = 1, limit = 10) => API.get(`/posts?page=${page}&limit=${limit}`);
 
-// NOTE: For file uploads, we don't set Content-Type manually. 
-// Axios detects FormData and handles it.
-export const createPost = (formData) => API.post("/posts/creates", formData);
+
+export const createPost = (formData) => API.post("/posts/creates", formData, {
+  headers: { "Content-Type": "multipart/form-data" },
+});
 
 // --- INTERACTIONS ---
-export const likePost = (postId) => API.post(`/posts/likes/${postId}`);
 export const commentOnPost = (postId, text) => API.post(`/posts/${postId}/comment`, { text });
 
-// Export the instance in case we need custom calls elsewhere
+export const likePost = (postId) => API.post(`/posts/${postId}/like`);
+
 export default API;

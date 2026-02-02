@@ -24,7 +24,7 @@ const LoginPage = () => {
       const { data } = await loginUser(formData);
       if (data.success) {
         toast.success("Welcome back!");
-        login(data.data);
+        login({ ...data.data, token: data.accessToken });
         navigate("/");
       }
     } catch (error) {
