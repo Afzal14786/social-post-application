@@ -5,9 +5,24 @@ import route from "./src/routes/index.routes.js";
 
 const app = express();
 
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:5000",
+    process.env.FRONTEND_URL
+];
+
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || `http://localhost:5173`,
-    methods: 'GET, POST',
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        } else {
+            console.log("Blocked Origin:", origin); // Helps debugging
+            return callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: 'GET, POST, PUT, DELETE, OPTIONS',
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 }
