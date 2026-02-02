@@ -15,7 +15,15 @@ import { likePost, commentOnPost } from "../../api/api.axios";
 import { useAuth } from "../../context/AuthContext";
 import { formatContent } from "../../utils/textUtils";
 
-// --- SUB-COMPONENT: Image Slider (UI: Wireframe 1) ---
+/**
+ * ImageSlider Component
+ * * Renders a media viewer for the post.
+ * * Key Features:
+ * - Displays images with `object-fit: contain` to ensure full visibility.
+ * - Shows navigation dots if there are multiple images.
+ * * @param {Object} props
+ * @param {string[]} props.images - Array of image URLs.
+ */
 const ImageSlider = ({ images }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -31,13 +39,13 @@ const ImageSlider = ({ images }) => {
         sx={{
           width: "100%",
           height: "100%",
-          objectFit: "contain", // 'contain' shows full image without cropping
+          objectFit: "contain", // Ensures the whole image is visible without cropping
           transition: "opacity 0.3s ease",
           bgcolor: "#000"
         }}
       />
 
-      {/* Dots Indicator (Only if > 1 image) */}
+      {/* Dots Indicator (Rendered only if > 1 image) */}
       {images.length > 1 && (
         <Stack 
           direction="row" 
@@ -47,11 +55,13 @@ const ImageSlider = ({ images }) => {
           {images.map((_, index) => (
             <Box
               key={index}
+              // Prevent clicking a dot from triggering parent onClick events (if any)
               onClick={(e) => { e.stopPropagation(); setCurrentIndex(index); }}
               sx={{
                 width: 8,
                 height: 8,
                 borderRadius: "50%",
+                // Highlight the current active dot
                 bgcolor: currentIndex === index ? "#fff" : "rgba(255,255,255,0.5)",
                 cursor: "pointer",
               }}
@@ -63,21 +73,30 @@ const ImageSlider = ({ images }) => {
   );
 };
 
-// --- SUB-COMPONENT: Single Comment Item (UI: Wireframe 2) ---
-// Handles the "Gray Box" look and indentation
+/**
+ * CommentItem Component
+ * * Renders a single comment bubble.
+ * * Key Features:
+ * - **Defensive Data Handling**: Checks for nested `user` objects or flat properties.
+ * - **Visual Indentation**: Supports nested replies via the `level` prop.
+ * * @param {Object} props
+ * @param {Object} props.comment - The comment data object.
+ * @param {number} [props.level=0] - Nesting level for indentation (0 = root).
+ */
 const CommentItem = ({ comment, level = 0 }) => {
-  // Safe check for user object in case it's missing
+  // Defensive Coding: Handle cases where user data might be populated or flat
   const user = comment.user || {}; 
   const avatar = user.avatar || "";
 
+  // Fallback chain: User Name -> Comment Name -> Default
   const name = user.name || comment.name || "User";
-  // Fallback for username, checking nested user object first
   const username = user.username || comment.username || "username";
+  
   const time = comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : "";
 
   return (
     <Box sx={{ display: "flex", mt: 2, ml: level * 4, position: "relative" }}>
-      {/* Indentation Line for nested comments */}
+      {/* Indentation Line for nested comments (Visual Tree) */}
       {level > 0 && (
         <Box 
           sx={{ 
@@ -91,7 +110,7 @@ const CommentItem = ({ comment, level = 0 }) => {
       <Avatar src={avatar} sx={{ width: 32, height: 32, mr: 2 }} />
       
       <Box sx={{ flex: 1 }}>
-        {/* The Gray Bubble */}
+        {/* The Gray Bubble Container */}
         <Box sx={{ bgcolor: "#f5f7fa", p: 1.5, borderRadius: 3 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="subtitle2" fontWeight="bold" sx={{ fontSize: "0.9rem" }}>
@@ -109,7 +128,7 @@ const CommentItem = ({ comment, level = 0 }) => {
           </Typography>
         </Box>
 
-        {/* Action Links (Like/Reply) */}
+        {/* Comment Actions */}
         <Stack direction="row" spacing={2} sx={{ mt: 0.5, ml: 1 }}>
             <Typography variant="caption" sx={{ cursor: "pointer", fontWeight: "600", color: "text.secondary" }}>Like</Typography>
             <Typography variant="caption" sx={{ cursor: "pointer", fontWeight: "600", color: "text.secondary" }}>Reply</Typography>
@@ -119,36 +138,52 @@ const CommentItem = ({ comment, level = 0 }) => {
   );
 };
 
-// --- MAIN COMPONENT: PostCard ---
+/**
+ * PostCard Component
+ * * The main feed item component.
+ * * Functionality:
+ * - **Optimistic Liking**: Updates UI immediately before server response.
+ * - **Commenting**: Adds comments via API and updates local list.
+ * - **Formatting**: Uses `formatContent` to handle mentions/hashtags in text.
+ * - **Responsive Media**: Uses ImageSlider for photos.
+ * * @param {Object} props
+ * @param {Object} props.post - The full post object from the API.
+ */
 const PostCard = ({ post }) => {
-  const { user } = useAuth(); // Current Logged In User
+  const { user } = useAuth(); // Access current logged-in user
   
+  // -- STATE: LIKES --
+  // Initialize 'liked' by checking if current user's ID exists in post.likes array
   const [liked, setLiked] = useState(() => {
       return post.likes?.some(id => String(id) === String(user?._id)) || false;
   });
   const [likeCount, setLikeCount] = useState(post.likes?.length || 0);
   
-  // -- EFFECTS --
+  // Effect: Sync local state if the parent 'post' prop updates (e.g., after a refetch)
   useEffect(() => {
-    // Sync 'liked' state whenever user or post data updates
     if (user && post.likes) {
        setLiked(post.likes.some(id => String(id) === String(user._id)));
     }
   }, [user, post.likes]);
 
+  // -- STATE: COMMENTS --
   const [comments, setComments] = useState(post.comments || []);
   const [commentCount, setCommentCount] = useState(post.comments?.length || 0);
-  
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false); // Controls visibility of comment section
   const [commentText, setCommentText] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
 
   // -- HANDLERS --
 
-  // 1. Like Post
+  /**
+   * Handles the Like action using Optimistic UI pattern.
+   * 1. Toggle UI state immediately (make it red, update count).
+   * 2. Call API.
+   * 3. If API fails, revert UI state.
+   */
   const handleLike = async () => {
     try {
-      // Optimistic UI Update
+      // Optimistic Update
       const isLiked = liked;
       setLiked(!isLiked);
       setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
@@ -162,7 +197,11 @@ const PostCard = ({ post }) => {
     }
   };
 
-  // 2. Add Comment
+  /**
+   * Submits a new comment.
+   * 1. Calls API.
+   * 2. Updates local comment list with the response data.
+   */
   const handleCommentSubmit = async () => {
     if (!commentText.trim()) return;
 
@@ -170,6 +209,7 @@ const PostCard = ({ post }) => {
     try {
       const { data } = await commentOnPost(post._id, commentText);
       if (data.success) {
+        // Backend returns the full updated list of comments
         const updatedComments = data.data.comments;
         
         setComments(updatedComments);
@@ -196,7 +236,9 @@ const PostCard = ({ post }) => {
         borderRadius: 3 
       }}
     >
-      {/* 1. HEADER */}
+      {/* ==============================
+          1. HEADER (User Info)
+         ============================== */}
       <CardHeader
         avatar={<Avatar src={post.user?.avatar} />}
         action={
@@ -222,19 +264,26 @@ const PostCard = ({ post }) => {
         subheader={new Date(post.createdAt).toDateString()}
       />
 
-      {/* 2. TEXT CONTENT */}
+      {/* ==============================
+          2. TEXT CONTENT
+         ============================== */}
       <CardContent sx={{ pt: 0, pb: 1 }}>
         <Typography variant="body1" color="text.primary" component="div" sx={{ lineHeight: 1.5 }}>
+          {/* formatContent: Utility to parse links/hashtags if needed */}
           {formatContent(post.content)}
         </Typography>
       </CardContent>
 
-      {/* 3. IMAGES (Slider) */}
+      {/* ==============================
+          3. MEDIA (Slider)
+         ============================== */}
       {post.images && post.images.length > 0 && (
         <ImageSlider images={post.images} />
       )}
 
-      {/* 4. ACTIONS */}
+      {/* ==============================
+          4. ACTIONS (Like, Comment, Share)
+         ============================== */}
       <CardActions disableSpacing sx={{ borderTop: "1px solid #f0f0f0", mt: 1 }}>
         <IconButton onClick={handleLike} sx={{ color: liked ? "#ff1744" : "inherit" }}>
           {liked ? <Favorite /> : <FavoriteBorder />}
@@ -252,17 +301,20 @@ const PostCard = ({ post }) => {
         <IconButton><BookmarkBorder /></IconButton>
       </CardActions>
 
-      {/* 5. COMMENTS SECTION */}
+      {/* ==============================
+          5. COMMENTS SECTION (Collapsible)
+         ============================== */}
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <Divider />
         <Box sx={{ bgcolor: "#fafafa", p: 2 }}>
             
-            {/* Scrollable List */}
+            {/* Scrollable Comment List */}
             <Box 
                 sx={{ 
                     maxHeight: "300px", 
                     overflowY: "auto", 
                     mb: 2,
+                    // Custom Scrollbar styling
                     "&::-webkit-scrollbar": { width: "6px" },
                     "&::-webkit-scrollbar-thumb": { backgroundColor: "#dbdbdb", borderRadius: "10px" }
                 }}
@@ -270,12 +322,11 @@ const PostCard = ({ post }) => {
                 {comments.map((comment, index) => (
                     <Box key={comment._id || index}>
                         <CommentItem comment={comment} />
-                        {/* If you add nested replies later, map them here with level={1} */}
                     </Box>
                 ))}
             </Box>
 
-            {/* Input Field */}
+            {/* Comment Input Field */}
             <Stack direction="row" spacing={2} alignItems="center">
                 <Avatar src={user?.avatar} sx={{ width: 32, height: 32 }} />
                 <TextField

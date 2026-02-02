@@ -1,5 +1,8 @@
 import { Box, CircularProgress } from "@mui/material";
 
+/**
+ * Loading Animation
+ */
 const Loading = () => {
   return (
     <Box

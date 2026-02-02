@@ -2,6 +2,11 @@ import { Box, Container, Typography, Divider, Stack, IconButton } from "@mui/mat
 import { GitHub, Instagram, Facebook } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
+/**
+ * 
+ * @param {children} param0 
+ * @returns the layout for authentication routes '/login', '/signup'
+ */
 const AuthLayout = ({ children }) => {
   return (
     <Box

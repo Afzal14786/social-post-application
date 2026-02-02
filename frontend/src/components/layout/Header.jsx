@@ -7,22 +7,52 @@ import { Search, Logout, KeyboardArrowDown } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Header Component
+ * * Renders the top navigation bar of the application.
+ * * Key Features:
+ * - **Sticky Positioning**: Stays at the top of the viewport.
+ * - **Branding**: Displays the "writespace" logo (navigates to home).
+ * - **Search**: Input field for filtering content (hidden on mobile).
+ * - **User Menu**: Profile avatar that opens a dropdown with a Logout action.
+ * * @component
+ * @returns {JSX.Element} The rendered AppBar UI.
+ */
 const Header = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  // --- Hooks ---
+  const { user, logout } = useAuth();  // Access current user data and logout function
+  const navigate = useNavigate();      // Hook for programmatic navigation
   
-  // Dropdown State
+  // --- State Management ---
+  // Stores the HTML element that anchors the dropdown menu
   const [anchorEl, setAnchorEl] = useState(null);
+
+  // Derived boolean to check if the menu is currently open
   const open = Boolean(anchorEl);
 
+  // --- Handlers ---
+
+  /**
+   * Opens the profile dropdown menu.
+   * @param {React.MouseEvent<HTMLElement>} event - The click event from the avatar container.
+   */
   const handleProfileClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
+  /**
+   * Closes the profile dropdown menu.
+   */
   const handleClose = () => {
     setAnchorEl(null);
   };
 
+  /**
+   * Handles user logout.
+   * 1. Closes the menu.
+   * 2. Calls the auth context logout method (clears cookies/local storage).
+   * 3. Redirects the user to the Login page.
+   */
   const handleLogout = () => {
     handleClose();
     logout();
@@ -59,7 +89,7 @@ const Header = () => {
             writespace
           </Typography>
 
-          {/* Search Bar (Hidden on very small screens if needed) */}
+          {/* 2. Global Search Bar */}
           <TextField
             placeholder="Search..."
             variant="outlined"
@@ -86,6 +116,7 @@ const Header = () => {
 
         {/* --- RIGHT: PROFILE DROPDOWN --- */}
         <Box>
+          {/* Profile Trigger Area */}
           <Box 
             onClick={handleProfileClick}
             sx={{ 
@@ -103,11 +134,11 @@ const Header = () => {
               sx={{ width: 38, height: 38, border: "1px solid #dbdbdb" }} 
             />
             
-            {/* Dropdown Arrow (Visual Cue) */}
+            {/* Down Arrow (Visual indicator for dropdown, hidden on mobile) */}
             <KeyboardArrowDown sx={{ color: "#000", ml: 0.5, display: { xs: "none", sm: "block" } }} />
           </Box>
 
-          {/* Menu */}
+          {/* User Dropdown Menu */}
           <Menu
             anchorEl={anchorEl}
             open={open}

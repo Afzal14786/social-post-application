@@ -3,9 +3,23 @@ import { Add } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * LeftPanel Component
+ * * Displays the user's "Identity Card" on the left sidebar of the feed.
+ * * Key Features:
+ * - **Visual Profile**: Shows a gradient cover and user avatar.
+ * - **User Info**: Displays name and username with links to the profile page.
+ * - **Social Stats**: Quick view of "Following" and "Followers" counts.
+ * - **Primary Action**: The main "Create Post" button for Desktop users.
+ * * @component
+ * @param {Object} props
+ * @param {Function} props.onOpenCreatePost - Callback function triggered when "Create Post" is clicked.
+ * @returns {JSX.Element} The rendered Profile Card UI.
+ */
+
 const LeftPanel = ({onOpenCreatePost}) => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();   // Access current logged-in user data
+  const navigate = useNavigate(); // Hook for navigation
 
   return (
     <Box sx={{ p: 2, height: "100%" }}>
@@ -23,6 +37,7 @@ const LeftPanel = ({onOpenCreatePost}) => {
         }}
       >
         {/* 1. COVER IMAGE (Gradient Placeholder) */}
+        {/* Ideally, this could be a user-uploaded cover image in the future */}
         <Box 
             sx={{ 
                 height: "90px", 
@@ -31,10 +46,11 @@ const LeftPanel = ({onOpenCreatePost}) => {
             }} 
         />
         
-        {/* 2. PROFILE INFO */}
+        {/* 2. PROFILE INFO SECTION */}
         <Box sx={{ px: 2.5, pb: 3, display: "flex", flexDirection: "column", alignItems: "center" }}>
           
-          {/* Avatar (Overlapping the banner) */}
+          {/* User Avatar */}
+          {/* Note: 'mt: -5' creates the overlapping effect on top of the banner */}
           <Avatar 
             src={user?.avatar} 
             alt={user?.name}
@@ -50,7 +66,7 @@ const LeftPanel = ({onOpenCreatePost}) => {
             onClick={() => navigate(`/profile/${user?.username}`)}
           />
           
-          {/* Name & Username */}
+          {/* Name & Username Links */}
           <Typography 
             variant="h6" 
             fontWeight="800" 
@@ -65,11 +81,12 @@ const LeftPanel = ({onOpenCreatePost}) => {
             {user?.name || "User Name"}
           </Typography>
           
+          {/* Following Count */}
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             @{user?.username || "username"}
           </Typography>
 
-          {/* 3. STATS ROW */}
+          {/* 3. SOCIAL STATS ROW */}
           <Stack 
             direction="row" 
             divider={<Divider orientation="vertical" flexItem sx={{ mx: 2, height: 20, alignSelf: "center" }} />}
@@ -77,6 +94,7 @@ const LeftPanel = ({onOpenCreatePost}) => {
             justifyContent="center"
             sx={{ width: "100%", mb: 3 }}
           >
+            {/* Following Count */}
              <Box sx={{ textAlign: "center", cursor: "pointer", "&:hover .num": { color: "#1d9bf0" } }}>
                 <Typography className="num" variant="subtitle2" fontWeight="800" sx={{ fontSize: "1rem" }}>
                     142
@@ -84,6 +102,7 @@ const LeftPanel = ({onOpenCreatePost}) => {
                 <Typography variant="caption" color="text.secondary">Following</Typography>
              </Box>
              
+             {/* Followers Count */}
              <Box sx={{ textAlign: "center", cursor: "pointer", "&:hover .num": { color: "#1d9bf0" } }}>
                 <Typography className="num" variant="subtitle2" fontWeight="800" sx={{ fontSize: "1rem" }}>
                     3.5k
@@ -92,7 +111,7 @@ const LeftPanel = ({onOpenCreatePost}) => {
              </Box>
           </Stack>
 
-          {/* 4. CREATE POST BUTTON */}
+          {/* 4. PRIMARY ACTION: CREATE POST */}
           <Button
             variant="contained"
             fullWidth
