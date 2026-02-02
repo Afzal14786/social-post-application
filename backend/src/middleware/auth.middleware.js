@@ -7,31 +7,41 @@ const protect = async (req, res, next)=> {
         try {
             token = req.headers.authorization.split(" ")[1];
             const decode = jwt.verify(token, process.env.JWT_SECRET);
-            let user = await User.findById(decode.id).select("-password");
+            req.user = await User.findById(decode.id).select("-password");
+            return next();
+        } catch(err) {
+            console.log(`Access token expired/invalid: ${err.message}`);
+        }
+    }
 
+    if (req.cookies && req.cookies.jwt) {
+        try {
+            token = req.cookies.jwt;
+            const decode = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+            
+            const user = await User.findById(decode.id).select("-password");
             if (!user) {
-                return res.status(401).json({
+                 return res.status(401).json({
                     message: "Not Authorized, User No Longer Exist",
                     success: false,
                 });
             }
+
             req.user = user;
-            next();
-        } catch(err) {
-            console.log(`Token verification error: ${err.message}`);
-            return res.status(401).json({
+            return next();
+        } catch (err) {
+             console.log(`Refresh token failed: ${err.message}`);
+             return res.status(401).json({
                 message: "Not Authorized, Token Failed",
                 success: false,
             });
         }
-    } else {
-        if (!token) {
-            return res.status(401).json({
-                message: "Not Authorized, No Token",
-                success: false,
-            });
-        }
     }
+
+    return res.status(401).json({
+        message: "Not Authorized, No Token",
+        success: false,
+    });
 }
 
 export default protect;

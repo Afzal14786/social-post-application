@@ -22,10 +22,12 @@ export const registeration = async (req, res)=> {
         const accessToken = generateAccessToken(newUser._id);
         const refreshToken = generateRefreshToken(newUser._id);
 
+        const isProduction = process.env.NODE_ENV === "production";
+
         res.cookie('jwt', refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: isProduction,
+            sameSite: isProduction ? 'node' : 'lax',
             maxAge: REFRESH_TOKEN_MAX_AGE
         });
 
@@ -61,10 +63,12 @@ export const login = async(req, res)=> {
             const accessToken = generateAccessToken(isExistingUser._id);
             const refreshToken = generateRefreshToken(isExistingUser._id);
 
+            const isProduction = process.env.NODE_ENV === "production";
+
             res.cookie('jwt', refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV==='production',
-                sameSite: 'strict',
+                secure: isProduction,
+                sameSite: isProduction ? 'node' : 'lax',
                 maxAge: REFRESH_TOKEN_MAX_AGE
             });
 
@@ -72,6 +76,7 @@ export const login = async(req, res)=> {
                 message: "User loggedin successfully",
                 success: true,
                 data: {
+                    _id: isExistingUser._id,
                     name: isExistingUser.name,
                     username: isExistingUser.username,
                     email: isExistingUser.email,

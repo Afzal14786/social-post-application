@@ -1,8 +1,8 @@
-import express from "express";
-import {createPost, addComment, getAllPosts, getSinglePost} from "../controllers/post/posts.controller.js";
+import {createPost, addComment, getAllPosts, getSinglePost, likeUnlikePost} from "../controllers/post/posts.controller.js";
 import {upload} from "../middleware/upload.middleware.js";
 import protect from "../middleware/auth.middleware.js";
 
+import express from "express";
 const router = express.Router();
 
 /**
@@ -21,6 +21,12 @@ router.post('/creates', protect, upload.array("images", 4), createPost);
  */
 
 router.post('/:postId/comment', protect, addComment);
+
+/**
+ * Like / Unlike Post
+ * @route /:postId/like
+ */
+router.post('/:postId/like', protect, likeUnlikePost);
 
 /**
  * Get all the posts ~ feed

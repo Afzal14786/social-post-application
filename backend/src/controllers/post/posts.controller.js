@@ -166,3 +166,46 @@ export const getSinglePost = async (req, res)=> {
         });
     }
 }
+
+/**
+ * Like / Unlike a Post
+ */
+export const likeUnlikePost = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const userId = req.user._id;
+
+        const post = await postModel.findById(postId);
+        if (!post) {
+            return res.status(404).json({
+                message: "Post not found",
+                success: false,
+            });
+        }
+
+        const isLiked = post.likes.includes(userId);
+
+        if (isLiked) {
+            // Unlike
+            post.likes = post.likes.filter(id => id.toString() !== userId.toString());
+        } else {
+            // Like
+            post.likes.push(userId);
+        }
+
+        await post.save();
+
+        return res.status(200).json({
+            message: isLiked ? "Post unliked" : "Post liked",
+            success: true,
+            data: post,
+        });
+
+    } catch (err) {
+        console.error(`Error while like/unlike post: ${err}`);
+        return res.status(500).json({
+            message: "Internal server error while processing like",
+            success: false,
+        });
+    }
+};
