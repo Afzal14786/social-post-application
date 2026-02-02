@@ -27,7 +27,7 @@ export const registeration = async (req, res)=> {
         res.cookie('jwt', refreshToken, {
             httpOnly: true,
             secure: isProduction,
-            sameSite: isProduction ? 'node' : 'lax',
+            sameSite: isProduction ? 'none' : 'lax',
             maxAge: REFRESH_TOKEN_MAX_AGE
         });
 
@@ -68,7 +68,7 @@ export const login = async(req, res)=> {
             res.cookie('jwt', refreshToken, {
                 httpOnly: true,
                 secure: isProduction,
-                sameSite: isProduction ? 'node' : 'lax',
+                sameSite: isProduction ? 'none' : 'lax',
                 maxAge: REFRESH_TOKEN_MAX_AGE
             });
 
@@ -100,11 +100,12 @@ export const login = async(req, res)=> {
 
 export const logout = async(req, res)=> {
     try {
+        const isProduction = process.env.NODE_ENV === "production";
         res.cookie('jwt', '', {
             httpOnly: true,
             expires: new Date(0),
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
         });
 
         res.status(200).json({
